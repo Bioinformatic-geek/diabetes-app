@@ -3,4 +3,4 @@ pandas
 scikit-learn==1.2.2
 matplotlib
 seaborn
-imbalanced-learn
+imbalanced-learn==0.10.1
