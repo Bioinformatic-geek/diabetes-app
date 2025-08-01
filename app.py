@@ -3,7 +3,10 @@ import pandas as pd
 import numpy as np
 import sklearn
 import imblearn
+import seaborn as sns
 import matplotlib.pyplot as plt
+
+
 st.title("🩺 Diabetes Prediction App")
 st.markdown("""
 This app predicts whether a person is likely to have diabetes using a machine learning model trained on the Pima Indians Diabetes dataset.
@@ -59,19 +62,48 @@ X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, te
 
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
+accuracy = model.score(X_test, y_test)  # Or use cross_val_score
+st.info(f"🎯 Model Accuracy: {accuracy*100:.2f}%")
 
 # Prediction
 if st.button("🔮 Predict"):
     prediction = model.predict(input_df)[0]
     pred_proba = model.predict_proba(input_df)[0][prediction]
+
+    # Stylized output
+if prediction == 1:
+    st.error("⚠️ High Risk of Diabetes")
+else:
+    st.success("✅ Low Risk of Diabetes")
     
     st.subheader("🧾 Prediction Result:")
     st.write("Diabetes Detected" if prediction == 1 else "No Diabetes Detected")
     st.write(f"🔢 Prediction Confidence: {pred_proba:.2f}")
 
+st.subheader("📊 Feature Correlation Heatmap")
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.heatmap(df.corr(), annot=True, cmap='coolwarm', ax=ax)
+st.pyplot(fig)
+
+st.subheader("🧪 Glucose Level Distribution")
+fig, ax = plt.subplots()
+sns.histplot(df['Glucose'], kde=True, ax=ax)
+st.pyplot(fig)
+
+
+st.subheader("⚖️ Diabetes Distribution in Dataset")
+labels = ['No Diabetes', 'Diabetes']
+sizes = df['Outcome'].value_counts()
+fig, ax = plt.subplots()
+ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+ax.axis('equal')
+st.pyplot(fig)
+
+
 # Evaluation Section
 if st.checkbox("📈 Show Model Evaluation"):
     y_pred = model.predict(X_test)
+
 
     st.subheader("Confusion Matrix")
     st.write(confusion_matrix(y_test, y_pred))
