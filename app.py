@@ -4,8 +4,11 @@ import numpy as np
 import sklearn
 import imblearn
 import matplotlib.pyplot as plt
-st.write("scikit-learn version:", sklearn.__version__)
-st.write("imbalanced-learn version:", imblearn.__version__)
+st.title("🩺 Diabetes Prediction App")
+st.markdown("""
+This app predicts whether a person is likely to have diabetes using a machine learning model trained on the Pima Indians Diabetes dataset.
+""")
+
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
