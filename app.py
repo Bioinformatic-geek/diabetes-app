@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import imblearn
 import matplotlib.pyplot as plt
+st.write("scikit-learn version:", sklearn.__version__)
+st.write("imbalanced-learn version:", imblearn.__version__)
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
