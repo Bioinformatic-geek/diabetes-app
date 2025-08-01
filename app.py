@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import sklearn
 import imblearn
 import matplotlib.pyplot as plt
 st.write("scikit-learn version:", sklearn.__version__)
