@@ -20,9 +20,14 @@ This application predicts whether a person is likely to have diabetes using a ma
 # Load data
 @st.cache_data
 def load_data():
-    return pd.read_csv("diabetes.csv")
+    # Dynamically find the file path relative to this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, "diabetes.csv")
 
-df = load_data()
+    st.write(f"Loading dataset from: {file_path}")  # Debugging print
+
+    df = pd.read_csv(file_path)
+    return df
 
 # EDA Options
 if st.checkbox("Show Raw Dataset"):
