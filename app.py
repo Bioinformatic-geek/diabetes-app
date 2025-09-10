@@ -7,102 +7,64 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from imblearn.over_sampling import SMOTE
 
-# -----------------------------
-# App Title
-# -----------------------------
 st.title("🧪 Diabetes Prediction App")
-st.write("Predict diabetes using the Pima Indian dataset and a Random Forest Classifier.")
+st.write("Predict diabetes using a Random Forest Classifier.")
 
 # -----------------------------
-# Load Dataset
+# File uploader
 # -----------------------------
-@st.cache_data
-def load_data():
-    # Make sure the file path is correct and includes the .csv extension
-    file_path = r"C:\Users\Varshini\Downloads\diabetes.csv"
-    df = pd.read_csv(file_path)
-    return df
+uploaded_file = st.file_uploader("Upload Pima Diabetes CSV file", type="csv")
 
-df = load_data()
-
-# -----------------------------
-# Show Raw Dataset
-# -----------------------------
-if st.checkbox("🔍 Show Raw Dataset"):
-    st.subheader("Raw Pima Indian Diabetes Dataset")
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    st.subheader("Raw Dataset")
     st.dataframe(df)
 
-# -----------------------------
-# Show Class Distribution
-# -----------------------------
-if st.checkbox("📊 Show Class Distribution"):
-    st.subheader("Class Distribution")
-    st.bar_chart(df["Outcome"].value_counts())
+    # -----------------------------
+    # Feature input for prediction
+    # -----------------------------
+    features = df.drop("Outcome", axis=1).columns
+    user_input = {}
+    for feature in features:
+        user_input[feature] = st.slider(
+            f"{feature}", float(df[feature].min()), float(df[feature].max()), float(df[feature].mean())
+        )
+    input_df = pd.DataFrame([user_input])
 
-# -----------------------------
-# User Input for Prediction
-# -----------------------------
-st.subheader("🧠 Enter Patient Data for Prediction")
-features = df.drop("Outcome", axis=1).columns
+    # -----------------------------
+    # Train Model with SMOTE
+    # -----------------------------
+    X = df.drop("Outcome", axis=1)
+    y = df["Outcome"]
 
-user_input = {}
-for feature in features:
-    user_input[feature] = st.slider(
-        f"{feature}", float(df[feature].min()), float(df[feature].max()), float(df[feature].mean())
-    )
+    sm = SMOTE(random_state=42)
+    X_res, y_res = sm.fit_resample(X, y)
 
-input_df = pd.DataFrame([user_input])
+    X_train, X_test, y_train, y_test = train_test_split(X_res, y_res, test_size=0.2, random_state=42)
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
 
-# -----------------------------
-# SMOTE + Train Model
-# -----------------------------
-X = df.drop("Outcome", axis=1)
-y = df["Outcome"]
+    # -----------------------------
+    # Prediction
+    # -----------------------------
+    if st.button("🔮 Predict"):
+        prediction = model.predict(input_df)[0]
+        pred_proba = model.predict_proba(input_df)[0][prediction]
 
-# Balance the dataset
-sm = SMOTE(random_state=42)
-X_resampled, y_resampled = sm.fit_resample(X, y)
+        st.subheader("🧾 Prediction Result:")
+        st.write("Diabetes Detected" if prediction == 1 else "No Diabetes Detected")
+        st.write(f"🔢 Prediction Confidence: {pred_proba:.2f}")
 
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+    # -----------------------------
+    # Model evaluation
+    # -----------------------------
+    if st.checkbox("📈 Show Model Evaluation"):
+        y_pred = model.predict(X_test)
+        st.subheader("Confusion Matrix")
+        st.write(confusion_matrix(y_test, y_pred))
 
-# Train Random Forest Classifier
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
+        st.subheader("Classification Report")
+        st.text(classification_report(y_test, y_pred))
 
-# -----------------------------
-# Prediction
-# -----------------------------
-if st.button("🔮 Predict"):
-    prediction = model.predict(input_df)[0]
-    pred_proba = model.predict_proba(input_df)[0][prediction]
-
-    st.subheader("🧾 Prediction Result:")
-    st.write("Diabetes Detected" if prediction == 1 else "No Diabetes Detected")
-    st.write(f"🔢 Prediction Confidence: {pred_proba:.2f}")
-
-# -----------------------------
-# Model Evaluation
-# -----------------------------
-if st.checkbox("📈 Show Model Evaluation"):
-    y_pred = model.predict(X_test)
-
-    st.subheader("Confusion Matrix")
-    st.write(confusion_matrix(y_test, y_pred))
-
-    st.subheader("Classification Report")
-    st.text(classification_report(y_test, y_pred))
-
-    st.subheader("Model Accuracy")
-    st.write(f"{accuracy_score(y_test, y_pred)*100:.2f}%")
-
-    # Feature importance
-    st.subheader("📌 Feature Importances")
-    importances = pd.Series(model.feature_importances_, index=X.columns)
-    st.bar_chart(importances.sort_values(ascending=True))
-
-# -----------------------------
-# Footer
-# -----------------------------
-st.markdown("---")
-st.markdown("Made with ❤ using Streamlit | [GitHub](https://github.com/Bioinformatic-geek)")
+        st.subheader("Model Accuracy")
+        st.write(f"{accuracy_score(y_test, y_pred)*100:.2f}%")
